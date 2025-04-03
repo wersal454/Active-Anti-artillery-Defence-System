@@ -42,7 +42,7 @@ _g = 9.81;
 
 			//Time to impact 
 			_t = round((-_v0 + sqrt(_root)) / _g);
-
+			
 			//Space travelled - approximation!!!
 			_spaceX = ((_pos select 0) + (_vel select 0) * _t);
 			_spaceY = ((_pos select 1) + (_vel select 1) * _t);

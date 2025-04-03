@@ -1,11 +1,11 @@
 private _unit       = param[0];
-private _distance   = param[1, 4500];
+private _distance   = param[1, 6000];
 private _tgtLogic 	= param[2, 1];
 //Speed, guidance, N, ignore direct, time to max, delay between shots
-private _weaponPar	= param[3, [420/3.6, 0, 4, false, 14, 0.75]];
+private _weaponPar	= param[3, [420/3.6, 0, 4, false, 14, 0.85]];
 private _typeArray 	= param[4, ["ShellBase","SubmunitionBase"]];
 
-if !(allowCRAMIRONDOME) exitWith {};
+if(is3DEN) exitWith {};
 
 //Stops previous dome script, starts new one
 _unit setVariable ["DomeInit", false, true];
@@ -14,7 +14,7 @@ _unit setVariable ["DomeInit", true, true];
 
 //Save values
 _unit setVariable ["WeaponsPar", _weaponPar, true];
-_unit setVariable ["DomeRunning", true];
+_unit setVariable ["DomeRunning", true, true];
 
 if(!isServer) exitWith {};
 
@@ -77,7 +77,7 @@ _unit addAction ["Toggle alarm", {
 }, nil, 9, false, false, "", "!(_this in _target)", 10];
 
 //Change logic
-_unit setVariable ["_tgtLogic", _tgtLogic];
+_unit setVariable ["_tgtLogic", _tgtLogic, true];
 _unit addAction ["Change targeting mode", {
 	params ["_target", "_caller", "_actionId", "_arguments"];
 	_tgtLogic = _target getVariable ["_tgtLogic", 0];
@@ -104,7 +104,7 @@ _unit addAction ["Change targeting mode", {
 	_id = owner _caller;
 	["Logic changed to: " + _out] remoteExec ["hint", _id];
 
-	_target setVariable	["_tgtLogic", _tgtLogic];
+	_target setVariable	["_tgtLogic", _tgtLogic, true];
 }, nil, 10, false, false, "", "!(_this in _target)", 10];
 
 //Makes it better 
@@ -120,19 +120,22 @@ private _delay = 0.5;
 private _needsAiming 	= _weaponPar select 3;
 private _shotsDelay		= _weaponPar select 5;
 
+/*
 //Main loop
 _loops = ((count _typeArray) - 1);
+*/
 
 //If a new dome is initialized
 private _isActive = true;
 private _timeActive = time;
+private _sideDome = side _unit;
 
 private _entities = [];
 private _targetedShells = [];
 private _ignored = [];
 
 //PREFETCH THE ALARMS TO SAVE PERFORMANCE
-private _alarms = _unit nearObjects ["NonStrategic", 1300];
+private _alarms = _unit nearObjects ["NonStrategic", 2000];
 _alarms = _alarms select {typeOf _x == "Land_Loudspeakers_F"};
 
 //SOME DELAY SO THE MISSILES DONT FIRE AT ONCE
@@ -145,7 +148,7 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 		_timeActive = time;
 
 		//Purge dead shells in _ignored
-		_ignored = _ignored select {alive _x};
+		_ignored = _ignored select {alive _x and !unitIsUAV _x or isNull _x};
 	};
 
 	_tgtLogic = _unit getVariable ["_tgtLogic", 0];
@@ -159,27 +162,62 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 
 	//Only consider the close ones
 	_entities = _entities select {_x distance2D _unit < _distance};
+
+	//Disregard same side (see https://community.bistudio.com/wiki/Arma_3:_Mission_Event_Handlers#ArtilleryShellFired)
+	_entities = _entities select {[(_x getVariable ["_shellSide", sideEnemy]), _sideDome] call BIS_fnc_sideIsEnemy};
 	
 	//Disregard already targetted
 	_entities = _entities select {!(_x in _targetedShells)};
 
 	//Disregard already targetted
 	_entities = _entities select {!(_x in _ignored)};
+	
+	// Filtering, so we won't shoot down tank shells, planes and bombs
+	_entities = _entities select {
+		private _ammoType = typeOf _x;
+    
+		// Shooting down everything artillery or rockets, but NOT shooting tank shells, planes and bombs
+		(_ammoType isKindOf "ShellBase" && !(_ammoType isKindOf "TankShell"))  // Artillery, but not tank ones
+		|| (_ammoType isKindOf "MissileBase")  // Missiles
+		|| (_ammoType isKindOf "RocketBase")   // Rocket based
+		|| (_ammoType isKindOf "BulletBase" && {_ammoType find "artillery" > -1})  // Fix for CUP (search "artillery" in classname)
+		|| (_ammoType isKindOf "SubmunitionBase")  // Fix for M5 Sandstorm (220 mm РСЗО)
+		|| (_x isKindOf "UAV_02_base_F")  // Adding UAV
+		|| (_x isKindOf "UAV_01_base_F")  // For CUP UAVs
+	};
 
-
+	_entities = _entities select {
+		if (_x isKindOf "UAV_02_base_F" || _x isKindOf "UAV_01_base_F") then {
+			if (random 1 > 0.65) exitWith {false}; // 35% chance not to intercept
+		};
+		true
+	};
+	
 	//Pick a target
 	if(count _entities > 0) then {
 		//IMPROVED LOGIC TO STOP OUTGOING TARGETS
 		{
-			private _vVer = (velocity _x) select 2;
-			private _dist = _x distance2D _unit;
-			if(_vVer > 50 and _dist < 300) then {
-				_ignored pushBack _x;
-				private _id = (_entities find _x);
-				if(_id != -1) then {
-					_entities deleteAt _id;
+			if(unitIsUAV _x and (count (crew _x) > 0)) then {
+				private _side = side _x;
+				private _alt = (getPosATL _x) select 2;
+				if(_side == side _unit or _alt < 5 or isTouchingGround _x) then {
+					_ignored pushBack _x;
+					private _id = (_entities find _x);
+					if(_id != -1) then {
+						_entities deleteAt _id;
+					};
 				};
-			}; 
+			} else {
+				private _vVer = (velocity _x) select 2;
+				private _dist = _x distance2D _unit;
+				if(_vVer > 50 and _dist < 300) then {
+					_ignored pushBack _x;
+					private _id = (_entities find _x);
+					if(_id != -1) then {
+						_entities deleteAt _id;
+					};
+				}; 
+			};
 		}forEach _entities;
 
 		if(count _entities > 0) then {
@@ -206,13 +244,14 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 				_unit setVariable ["alarmplaying",true,true];
 
 				{
-					_x say3D ["CRAMALARM", 800 ,1,false,0];
+					//_x say3D ["CRAMALARM", 1500 ,1,false,0];
+					playSound3D ["ultimate\Sound\CRAM_ALARM.ogg", _x, false, (getposASL _x), 1, 1, 1000, 0, false];
 				}forEach _alarms;
 
-				_unit say3D ["CRAMALARM",1500,1,false,0];
-				playSound3D ["D37\Sound\cramalarm.ogg", _unit];	// alarm
+				//_unit say3D ["CRAMALARM",2000,1,false,0];
+				playSound3D ["ultimate\Sound\CRAM_ALARM.ogg", _unit, false, (getposASL _unit), 2, 1, 1500, 0, false];
 				_unit spawn {
-					sleep 90;
+					sleep 32;
 					_this setVariable ["alarmplaying",false,true];
 				};
 			};
@@ -227,9 +266,9 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 			private _pos = (getPosASL _target);
 			_increment = 3500;
 
-			//AIM above horizon
+			//AIM above horizon 22 degrees
 			if(_target isKindOf "ammo_Missile_CruiseBase") then {
-				_increment = (_unit distance2D _target) * tan(15);
+				_increment = (_unit distance2D _target) * tan(22);
 			};
 
 			_pos set [2, (_pos select 2) + _increment ];
@@ -262,7 +301,7 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 
 			//Safety cleanup 
 			_target spawn {
-				sleep 25;
+				sleep 30;
 				if(alive _this) then {
 					["_targetedShells", _this, "remove"] call A3U_fnc_handleTargets;
 				};

@@ -18,7 +18,7 @@ class CfgFunctions
             };
             class handleTargets 
             {
-                file = QPATHTOFOLDER(functions\D37\D37_dome\fn_handleMissile.sqf);
+                file = QPATHTOFOLDER(functions\D37\D37_dome\fn_handleTargets.sqf);
             };
             class handleUAV 
             {

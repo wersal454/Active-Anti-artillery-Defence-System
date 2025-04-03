@@ -1,5 +1,4 @@
 if(!isServer) exitWith {};
-if !(allowCRAMIRONDOME) exitWith {};
 
 //Optimized version of the shells initialization script 
 private _UAV = param[0];

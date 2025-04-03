@@ -12,7 +12,7 @@ class cfgVehicles
 	class Helicopter: Air {
 		class Eventhandlers;
 	};
-	/* class Helicopter_Base_F: Helicopter {
+	class Helicopter_Base_F: Helicopter {
 		class Eventhandlers: Eventhandlers {
 			class D37_dome {
 				init = "_this call A3U_fnc_handleUAV;";
@@ -27,7 +27,7 @@ class cfgVehicles
 				init = "_this call A3U_fnc_handleUAV;";
 			};
 		};
-	}; */
+	};
 
 	class Plane_Base_F: Plane {};
 	class Plane_Fighter_01_Base_F: Plane_Base_F {};
@@ -93,7 +93,7 @@ class cfgVehicles
 		{
 			class DOME37 
 			{
-				init = "[_this select 0, 2800, 1] spawn A3U_fnc_handleDome;";
+				init = "[_this select 0, 2800, 1, [720/3.6, 0, 4, true, 14, 1]] spawn A3U_fnc_handleDome;";
 			};
 		};
 	};
@@ -105,7 +105,7 @@ class cfgVehicles
 		{
 			class DOME37 
 			{
-				init = "[_this select 0, 4400, 1, [420/3.6, 0, 4, false, 14, 1]] spawn A3U_fnc_handleDome;";
+				init = "[_this select 0, 4400, 1, [720/3.6, 0, 4, false, 14, 1]] spawn A3U_fnc_handleDome;";
 			};
 		};
 
@@ -162,7 +162,7 @@ class cfgVehicles
 		{
 			class DOME37 
 			{
-				init = "[_this select 0, 4500, 1, [800/3.6, 0, 3, true, 15, 4]] spawn A3U_fnc_handleDome;";
+				init = "[_this select 0, 4500, 1, [880/3.6, 0, 3, true, 15, 4]] spawn A3U_fnc_handleDome;";
 			};
 		};
 	};
@@ -222,7 +222,7 @@ class cfgVehicles
 		{
 			class DOME37 
 			{
-				init = "[_this select 0, 4500, 1, [800/3.6, 0, 3, true, 15, 4]] spawn A3U_fnc_handleDome;";
+				init = "[_this select 0, 4500, 1, [880/3.6, 0, 3, true, 15, 4]] spawn A3U_fnc_handleDome;";
 			};
 		};
 	};
@@ -242,7 +242,7 @@ class cfgVehicles
 		{
 			class DOME37 
 			{
-				init = "[_this select 0, 4400, 1, [420/3.6, 0, 4, false, 14, 1]] spawn A3U_fnc_handleDome;";
+				init = "[_this select 0, 4400, 1, [520/3.6, 0, 4, false, 14, 1]] spawn A3U_fnc_handleDome;";
 			};
 		};
 	};
@@ -309,7 +309,7 @@ class cfgVehicles
 		{
 			class DOME37 
 			{
-				init = "[_this select 0, 4400, 1, [420/3.6, 0, 4, false, 14, 1]] spawn A3U_fnc_handleDome;";
+				init = "[_this select 0, 4400, 1, [920/3.6, 0, 4, false, 14, 1]] spawn A3U_fnc_handleDome;";
 			};
 		};
 	};
@@ -320,7 +320,7 @@ class cfgVehicles
 		{
 			class DOME37 
 			{
-				init = "[_this select 0, 4400, 1, [420/3.6, 0, 4, false, 14, 1]] spawn A3U_fnc_handleDome;";
+				init = "[_this select 0, 4400, 1, [920/3.6, 0, 4, false, 14, 1]] spawn A3U_fnc_handleDome;";
 			};
 		};
 	};
@@ -331,7 +331,7 @@ class cfgVehicles
 		{
 			class DOME37 
 			{
-				init = "[_this select 0, 4400, 1, [420/3.6, 0, 4, false, 14, 1]] spawn A3U_fnc_handleDome;";
+				init = "[_this select 0, 4400, 1, [920/3.6, 0, 4, false, 14, 1]] spawn A3U_fnc_handleDome;";
 			};
 		};
 	};

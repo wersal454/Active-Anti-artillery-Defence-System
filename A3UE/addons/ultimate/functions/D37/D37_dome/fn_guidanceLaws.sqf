@@ -12,7 +12,7 @@ private _speed 		= _parameters select 0;
 private _guidance 	= _parameters select 1;
 private _N 			= _parameters select 2;
 private _timeToMax	= _parameters select 4;
-private _boostTime	= 1.5;
+private _boostTime	= 2;
 
 if(isNull _target) exitWith {};
 
@@ -50,7 +50,7 @@ if(_skipSpeed) then {
 private _targetIsMissile = (_target isKindOf "MissileBase");
 
 //Variables for the missile and logic
-private _increment = 0.044;
+private _increment = 0.045;
 private _k = 1;
 private _initialDist = (_missile distance _target);
 private _closeEncounter = false;

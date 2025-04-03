@@ -1,6 +1,6 @@
 #include "..\script_component.hpp"
 
-class CfgPatches 
+/* class CfgPatches 
 {
     class ultimate_d37
     {
@@ -14,18 +14,8 @@ class CfgPatches
         authorUrl = "";
         VERSION_CONFIG;
     };
-};
+}; */
 
-class CfgSounds
-{
-	sounds[] = {};
-	class cramalarm
-	{
-		name = "cramalarm";
-		sound[] = {"D37\Sound\cramalarm.ogg", 1.0, 1.0};
-		titles[] = {0, ""};
-	};
-};
 #include "CfgVehicles.hpp"
 
 class cfgWeapons

@@ -8,15 +8,10 @@ class CfgPatches
         units[] = {};
         weapons[] = {};
         requiredVersion = REQUIRED_VERSION;
-        requiredAddons[] = {QDOUBLES(PREFIX,core)};
+        requiredAddons[] = {"A3A_core", "A3A_ultimate"};
         author = AUTHOR;
         authors[] = { AUTHORS };
         authorUrl = "";
         VERSION_CONFIG;
     };
 };
-
-#include "CfgSounds.hpp" 
-#include "D37\config.cpp"
-#include "CfgFunctions.hpp"
-//#include "D37\CfgVehicles.hpp"

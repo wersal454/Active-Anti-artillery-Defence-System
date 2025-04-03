@@ -2,7 +2,7 @@ _unit = param[0];
 
 if(!isServer) exitWith {};
 if(is3DEN) exitWith {};
-if !(allowCRAMIRONDOME) exitWith {};
+//if !(allowCRAMIRONDOME) exitWith {};
 
 //Stops previous dome script, starts new one
 _unit setVariable ["DomeInit", false, true];
@@ -86,6 +86,8 @@ private _targetedShells = [];
 private _distance = 1800;
 private _ignored = [];
 
+private _alarms = _unit nearObjects ["NonStrategic", 2000];
+_alarms = _alarms select {typeOf _x == "Land_Loudspeakers_F"};
 
 //Main loop
 while {alive _unit and (someAmmo _unit) and _isActive} do {
@@ -109,8 +111,8 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 	//Only consider the close ones
 	_entities = _entities select {_x distance2D _unit < _distance};
 
-	//Disregard same side
-	//_entities = _entities select {!(sideOwner == (_x getVariable ["sideShell", civilian]))};
+	//Disregard same side (see https://community.bistudio.com/wiki/Arma_3:_Mission_Event_Handlers#ArtilleryShellFired)
+	_entities = _entities select {[(_x getVariable ["_projectileSide", sideEnemy]), _sideOwner] call BIS_fnc_sideIsEnemy};
 	
 	//Disregard already targetted
 	_entities = _entities select {!(_x in _targetedShells)};
@@ -118,19 +120,52 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 	//Disregard ignored
 	_entities = _entities select {!(_x in _ignored)};
 
+	// Filtering, so we won't shoot down tank shells, planes and bombs
+	_entities = _entities select {
+		private _ammoType = typeOf _x;
+    
+		// Shooting down everything artillery or rockets, but NOT shooting tank shells, planes and bombs
+		(_ammoType isKindOf "ShellBase" && !(_ammoType isKindOf "TankShell"))  // Artillery, but not tank ones
+		|| (_ammoType isKindOf "MissileBase")  // Missiles
+		|| (_ammoType isKindOf "RocketBase")   // Rocket based
+		|| (_ammoType isKindOf "BulletBase" && {_ammoType find "artillery" > -1})  // Fix for CUP (search "artillery" in classname)
+		|| (_ammoType isKindOf "SubmunitionBase")  // Fix for M5 Sandstorm (220 mm РСЗО)
+		|| (_x isKindOf "UAV_02_base_F")  // Adding UAV
+		|| (_x isKindOf "UAV_01_base_F")  // For CUP UAVs
+	};
+
+	_entities = _entities select {
+		if (_x isKindOf "UAV_02_base_F" || _x isKindOf "UAV_01_base_F") then {
+			if (random 1 > 0.65) exitWith {false}; // 35% chance not to intercept
+		};
+		true
+	};
+
 	//Pick a target
 	if(count _entities > 0) then {
 		//IMPROVED LOGIC TO STOP OUTGOING TARGETS
 		{
-			private _vVer = (velocity _x) select 2;
-			private _dist = _x distance2D _unit;
-			if(_vVer > 50 and _dist < 300) then {
-				_ignored pushBack _x;
-				private _id = (_entities find _x);
-				if(_id != -1) then {
-					_entities deleteAt _id;
+			if(unitIsUAV _x and (count (crew _x) > 0)) then {
+				private _side = side _x;
+				private _alt = (getPosATL _x) select 2;
+				if(_side == side _unit or _alt < 5 or isTouchingGround _x) then {
+					_ignored pushBack _x;
+					private _id = (_entities find _x);
+					if(_id != -1) then {
+						_entities deleteAt _id;
+					};
 				};
-			}; 
+			} else {
+				private _vVer = (velocity _x) select 2;
+				private _dist = _x distance2D _unit;
+				if(_vVer > 50 and _dist < 300) then {
+					_ignored pushBack _x;
+					private _id = (_entities find _x);
+					if(_id != -1) then {
+						_entities deleteAt _id;
+					};
+				}; 
+			};
 		}forEach _entities;
 
 		if(count _entities > 0) then {
@@ -147,12 +182,21 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 	if(!isNull _target) then {
 		_delay = 0.05;
 		_emptyLoops = 0;
+
+		//ALARM
 		if(_unit getVariable ["alarmEnabled",false]) then {
 			if (!(_unit getVariable ["alarmplaying",false])) then {
 				_unit setVariable ["alarmplaying",true,true];
-				_unit say3D ["cramalarm",1000,1,false,0];
+
+				{
+					//_x say3D ["CRAMALARM", 1500 ,1,false,0];
+					playSound3D ["ultimate\Sound\CRAM_ALARM.ogg", _x, false, (getposASL _x), 1, 1, 1000, 0, false];
+				}forEach _alarms;
+
+				//_unit say3D ["CRAMALARM",2000,1,false,0];
+				playSound3D ["ultimate\Sound\CRAM_ALARM.ogg", _x, false, (getposASL _x), 1, 1, 1000, 0, false];
 				_unit spawn {
-					sleep 10;
+					sleep 32;
 					_this setVariable ["alarmplaying",false,true];
 				};
 			};
