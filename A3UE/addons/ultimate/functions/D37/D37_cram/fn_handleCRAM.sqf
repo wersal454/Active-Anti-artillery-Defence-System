@@ -190,11 +190,11 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 
 				{
 					//_x say3D ["CRAMALARM", 1500 ,1,false,0];
-					playSound3D ["ultimate\Sound\CRAM_ALARM.ogg", _x, false, (getposASL _x), 1, 1, 1000, 0, false];
+					//playSound3D ["ultimate\Sound\CRAM_ALARM.ogg", _x, false, (getposASL _x), 1, 1, 1000, 0, false]; disable it for now, since it's not working
 				}forEach _alarms;
 
 				//_unit say3D ["CRAMALARM",2000,1,false,0];
-				playSound3D ["ultimate\Sound\CRAM_ALARM.ogg", _x, false, (getposASL _x), 1, 1, 1000, 0, false];
+				//playSound3D ["ultimate\Sound\CRAM_ALARM.ogg", _x, false, (getposASL _x), 1, 1, 1000, 0, false]; disable it for now, since it's not working
 				_unit spawn {
 					sleep 32;
 					_this setVariable ["alarmplaying",false,true];
