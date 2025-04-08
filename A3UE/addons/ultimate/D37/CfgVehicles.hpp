@@ -314,7 +314,7 @@ class cfgVehicles
 		};
 	};
 
-	class COPTRE_Lance_INS: AAA_System_01_base_F 
+	class OPTRE_Lance_INS: AAA_System_01_base_F 
 	{
 		class EventHandlers: EventHandlers 
 		{
