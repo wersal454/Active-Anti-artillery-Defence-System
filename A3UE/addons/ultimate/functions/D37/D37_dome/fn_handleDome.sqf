@@ -244,12 +244,10 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 				_unit setVariable ["alarmplaying",true,true];
 
 				{
-					//_x say3D ["CRAMALARM", 1500 ,1,false,0];
-					//playSound3D ["ultimate\Sound\CRAM_ALARM.ogg", _x, false, (getposASL _x), 1, 1, 1000, 0, false]; disable it for now, since it's not working
+					playSound3D ["x\A3UE\addons\core\cramalarm\cram.ogg", _x, false, (getposASL _x), 1, 1, 1000, 0, false];
 				}forEach _alarms;
 
-				//_unit say3D ["CRAMALARM",2000,1,false,0];
-				//playSound3D ["ultimate\Sound\CRAM_ALARM.ogg", _unit, false, (getposASL _unit), 2, 1, 1500, 0, false]; disable it for now, since it's not working
+				playSound3D ["x\A3UE\addons\core\cramalarm\cram.ogg", _unit, false, (getposASL _unit), 2, 1, 1500, 0, false];
 				_unit spawn {
 					sleep 32;
 					_this setVariable ["alarmplaying",false,true];
@@ -268,7 +266,7 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 
 			//AIM above horizon 22 degrees
 			if(_target isKindOf "ammo_Missile_CruiseBase") then {
-				_increment = (_unit distance2D _target) * tan(22);
+				_increment = (_unit distance2D _target) * tan(15);
 			};
 
 			_pos set [2, (_pos select 2) + _increment ];

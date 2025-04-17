@@ -15,3 +15,4 @@ class CfgPatches
         VERSION_CONFIG;
     };
 };
+#include "CfgSoundscram.hpp"
