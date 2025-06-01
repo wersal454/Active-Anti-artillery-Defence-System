@@ -12,46 +12,67 @@ private _initializedShells = missionNamespace getVariable ["_initializedShells",
 _shell setVariable ["isMissile", true, true];
 
 _shell spawn {
-	private _shell = _this;
-	//Let the shell climb a little
-	sleep 2;
+    private _shell = _this;
+    private _fake = objNull;
+    private _exitLoop = false;
+    
+    private _initializedShells = missionNamespace getVariable ["_initializedShells", []];
+    _initializedShells pushBackUnique _shell;
+    missionNamespace setVariable ["_initializedShells", _initializedShells, true];
+    
+    sleep 3;
+    
+    if (!alive _shell || isNull _shell) exitWith {
+        ["_targetedShells", _shell, "remove"] call A3U_fnc_handleTargets;
+        ["_initializedShells", _shell, "remove"] call A3U_fnc_handleTargets;
+    };
 
-	//Some things that explode immediatly don't endup cluttering the script later
-	if(!alive _shell or isNull _shell) exitWith {};
-
-	//Detection loop
-	while {alive _shell} do {
-		private _entities = _shell nearObjects ["MissileBase", 25];
-
-        _entities = _entities select {!(_x getVariable ["isMissile", false])};
-	
-		//Boom
-		if(count _entities > 0) then {
-			{
-				private _target = _x getVariable ["_chosenTarget", objNull];
-				if (_target == _shell) then {
-					//_mine = createMine ["APERSMine", getPosATL _x, [], 0];
-					//_mine setDamage 1;
-					triggerammo _x;
-					_mine = createMine ["APERSMine", getPosATL _shell, [], 0];
-					_mine setDamage 1;
-
-					//Cleanup
-					["_targetedShells", _shell, "remove"] call A3U_fnc_handleTargets;
-					["_initializedShells", _shell, "remove"] call A3U_fnc_handleTargets;
-					//deletevehicle _x; //Entity whose target is the _shell aka the missile
-					deletevehicle _shell;
-					break;
-				};
-			}forEach _entities;	
-		};
-		sleep 0.08; 
-	};
-
-	if(!isNull _shell) then {
-		["_targetedShells", _shell, "remove"] call A3U_fnc_handleTargets;
-		["_initializedShells", _shell, "remove"] call A3U_fnc_handleTargets;
-	};
+	private _pos = getpos _shell;
+    
+    _fake = "CRAM_Fake_PlaneTGT" createVehicle _pos;
+    _fake attachTo [_shell, [0,3,0]];
+    
+	scopeName "something"; // Метка для breakTo
+    // Основной цикл обнаружения угроз
+    while {alive _shell && !_exitLoop} do {
+		_fake attachTo [_shell, [0,3,0]]; 
+        // Защита от пуль (CRAM)
+        private _bullets = _shell nearObjects ["BulletBase", 5];
+        if (count _bullets > 0) then {
+            createMine ["APERSMine", getPosATL _shell, [], 0] setDamage 1;
+            deleteVehicle _shell;
+            _exitLoop = true;
+        };
+        
+        if (_exitLoop) exitWith {};
+        
+        // Защита от ракет
+        private _missiles = _shell nearObjects ["MissileBase", 30];
+        _missiles = _missiles select { !(_x getVariable ["isMissile", false]) }; // Фильтрация своих ракет
+        
+        {
+            if ((_x getVariable ["_chosenTarget", objNull]) isEqualTo _shell) then {
+                triggerAmmo _x; // Активируем ракету
+                createMine ["APERSMine", getPosATL _shell, [], 0] setDamage 1;
+                deleteVehicle _shell;
+                _exitLoop = true;
+                breakTo "something"; // Выход из циклов
+            };
+        } forEach _missiles;
+        
+        sleep 0.08;
+    };
+    
+    // Финализация
+    if (!isNull _fake) then {
+        detach _fake;
+        deleteVehicle _fake;
+    };
+    
+    if (!isNull _shell) then {
+        ["_targetedShells", _shell, "remove"] call A3U_fnc_handleTargets;
+        ["_initializedShells", _shell, "remove"] call A3U_fnc_handleTargets;
+    };
 };
 
 _initializedShells pushback _shell;

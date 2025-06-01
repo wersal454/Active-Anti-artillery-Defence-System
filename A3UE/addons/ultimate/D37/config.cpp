@@ -47,7 +47,7 @@ class cfgAmmo
 	class ammo_Missile_AntiRadiationBase: MissileBase {
 		class EventHandlers:EventHandlers {
 			class D37_Dome {
-				init = "_this call A3U_fnc_initMissileCRAM";
+				init = "_this call A3U_fnc_initMissile";
 			};
 		};
 	};
@@ -55,7 +55,7 @@ class cfgAmmo
 	class ammo_Missile_CruiseBase: MissileBase {
 		class EventHandlers:EventHandlers {
 			class D37_Dome {
-				init = "_this call A3U_fnc_initMissileCRAM";
+				init = "_this call A3U_fnc_initMissile";
 			};
 		};
 	};

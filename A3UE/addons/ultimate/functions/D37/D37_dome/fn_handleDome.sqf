@@ -184,6 +184,8 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 		|| (_ammoType isKindOf "SubmunitionBase")  // Fix for M5 Sandstorm (220 mm РСЗО)
 		|| (_x isKindOf "UAV_02_base_F")  // Adding UAV
 		|| (_x isKindOf "UAV_01_base_F")  // For CUP UAVs
+
+		|| (typeOf _x in ["Lk_geran2", "Lk_shahed136", "Lk_shahed136_t", "shahed_238_CSAT"]) 
 	};
 
 	_entities = _entities select {
@@ -244,10 +246,10 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 				_unit setVariable ["alarmplaying",true,true];
 
 				{
-					playSound3D ["x\A3UE\addons\core\cramalarm\cram.ogg", _x, false, (getposASL _x), 1, 1, 1000, 0, false];
+					playSound3D ["x\A3UE\addons\core\cramalarm\cram.ogg", _x, false, (getposASL _x), 1, 1, 1500, 0, false];
 				}forEach _alarms;
 
-				playSound3D ["x\A3UE\addons\core\cramalarm\cram.ogg", _unit, false, (getposASL _unit), 2, 1, 1500, 0, false];
+				playSound3D ["x\A3UE\addons\core\cramalarm\cram.ogg", _unit, false, (getposASL _unit), 2, 1, 2000, 0, false];
 				_unit spawn {
 					sleep 32;
 					_this setVariable ["alarmplaying",false,true];
@@ -318,6 +320,11 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 	sleep _delay;
 };
 
+{
+	[_x, "AUTOTARGET"] remoteExec ["enableAI", owner _x];
+}forEach crew _unit;
+
+_unit doTarget objNull;
 _unit doWatch objNull;
 removeallActions _unit;
 

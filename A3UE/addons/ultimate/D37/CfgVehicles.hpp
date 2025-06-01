@@ -31,14 +31,13 @@ class cfgVehicles
 
 	class Plane_Base_F: Plane {};
 	class Plane_Fighter_01_Base_F: Plane_Base_F {};
-	class B_Plane_Fighter_01_F: Plane_Fighter_01_Base_F 
+	class B_Plane_Fighter_01_Stealth_F: Plane_Fighter_01_Base_F 
 	{
 		class EventHandlers {};
 	};
 
-	class CRAM_Fake_PlaneTGT: B_Plane_Fighter_01_F 
+	class CRAM_Fake_PlaneTGT: B_Plane_Fighter_01_Stealth_F
 	{
-		//model = "\A3\Structures_F\Mil\Helipads\HelipadEmpty_F.p3d";
 		class EventHandlers: EventHandlers 
 		{
 			init = "(_this select 0) hideObjectGlobal true;";

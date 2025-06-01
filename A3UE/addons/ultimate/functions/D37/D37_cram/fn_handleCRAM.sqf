@@ -5,16 +5,9 @@ if(is3DEN) exitWith {};
 //if !(allowCRAMIRONDOME) exitWith {};
 
 //Stops previous dome script, starts new one
-_unit setVariable ["DomeInit", false, true];
-waitUntil {(_unit getVariable ["DomeRunning", false]) == false};
-_unit setVariable ["DomeInit", true, true];
-
-//Save values
-_unit setVariable ["DomeRunning", true, true];
-
-private _isInitialized = (_unit getVariable ["cramInit", false]);
-if(_isInitialized) exitWith {};
-_unit setVariable ["cramInit", true, true];
+_unit setVariable ["CRAMInit", false, true];
+waitUntil {(_unit getVariable ["CRAMRunning", false]) == false};
+_unit setVariable ["CRAMInit", true, true];
 
 //Toggle incoming alarm
 _unit setVariable ["alarmEnabled", true, true];
@@ -92,7 +85,7 @@ _alarms = _alarms select {typeOf _x == "Land_Loudspeakers_F"};
 //Main loop
 while {alive _unit and (someAmmo _unit) and _isActive} do {
 	if(time - _timeActive > 5) then {
-		_isActive = _unit getVariable ["DomeInit",true];
+		_isActive = _unit getVariable ["CRAMInit",true];
 		_timeActive = time;
 
 		//Purge dead shells in _ignored
@@ -132,6 +125,8 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 		|| (_ammoType isKindOf "SubmunitionBase")  // Fix for M5 Sandstorm (220 mm РСЗО)
 		|| (_x isKindOf "UAV_02_base_F")  // Adding UAV
 		|| (_x isKindOf "UAV_01_base_F")  // For CUP UAVs
+
+		|| (typeOf _x in ["Lk_geran2", "Lk_shahed136", "Lk_shahed136_t", "shahed_238_CSAT"]) 
 	};
 
 	_entities = _entities select {
@@ -169,13 +164,7 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 		}forEach _entities;
 
 		if(count _entities > 0) then {
-			_target = [_entities, _unit, _tgtLogic] call A3U_fnc_pickTargetCRAM;
-			private _objs = attachedObjects _target;
-			if (count _objs == 0) then {
-				_target = objNull;
-			} else {
-				_target = _objs select 0;
-			};
+			_target = [_entities, _unit, _tgtLogic] call A3U_fnc_pickTarget;
 		};
 	};
 
@@ -202,21 +191,25 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 
 		_time = time;
 		_unit doTarget _target;
-		_shell = attachedTo _target;
+		private _objs = attachedObjects _target;
+		if (count _objs > 0) then {_target = _objs select 0;};
+		private _pos = (getPosASL _target);
+		_unit doTarget _target;
 		
-		waitUntil{_unit aimedAtTarget [_target, _wep] > 0.2 or (time - _time) > 3.5};
+		waitUntil {(([_unit, _pos] call A3U_fnc_watchQuality) > 0.95) || (time - _time) > 3.5};
 		for "_i" from 1 to 100 do {
-			if(!alive _shell) exitWith {};
-			if((_i % 20) == 0) then {
+			if(!alive _target) exitWith {};
+			if((_i % 10) == 0) then {
 				_unit doTarget _target;
 			};
-			
-			[_unit, _wep, [0]] call BIS_fnc_fire;
+			_pos = (getPosASL _target);
+			if (([_unit, _pos] call A3U_fnc_watchQuality) > 0.95) then {
+				[_unit, _wep, [0]] call BIS_fnc_fire;
+			};
 			sleep 0.01; 
 		};
-
 	} else {
-		_unit doTarget objNull;
+		//_unit doTarget objNull;
 		//Lowers the amount of checks per second when nothing is found
 		_delay = 0.1;
 		_emptyLoops = (_emptyLoops + 1);
@@ -228,4 +221,8 @@ while {alive _unit and (someAmmo _unit) and _isActive} do {
 	sleep _delay;
 };
 
+_unit doTarget objNull;
+_unit doWatch objNull;
 removeallActions _unit;
+
+_unit setVariable ["CRAMRunning", false, true];

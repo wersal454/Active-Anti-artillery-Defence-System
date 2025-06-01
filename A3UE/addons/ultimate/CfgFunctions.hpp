@@ -52,31 +52,6 @@ class CfgFunctions
             {
                 file = QPATHTOFOLDER(functions\D37\D37_cram\fn_handleCRAM.sqf);
             };
-            class handleCRAMinit 
-            {
-                file = QPATHTOFOLDER(functions\D37\D37_cram\fn_handleCRAMinit.sqf);
-            };
-            class handleTargetsCRAM 
-            {
-                file = QPATHTOFOLDER(functions\D37\D37_cram\fn_handleTargetsCRAM.sqf);
-            };
-            class initMissileCRAM 
-            {
-                file = QPATHTOFOLDER(functions\D37\D37_cram\fn_initMissileCRAM.sqf);
-            };
-            class initShellsCRAM 
-            {
-                file = QPATHTOFOLDER(functions\D37\D37_cram\fn_initShellsCRAM.sqf);
-            };
-            class pickTargetCRAM 
-            {
-                file = QPATHTOFOLDER(functions\D37\D37_cram\fn_pickTargetCRAM.sqf);
-            };
-            class postInit 
-            {
-                file = QPATHTOFOLDER(functions\D37\D37_cram\fn_postInit.sqf);
-                postInit = 1;
-            };
         };
     };
 };

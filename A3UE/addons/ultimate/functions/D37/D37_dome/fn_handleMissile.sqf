@@ -26,16 +26,19 @@ while{alive _missile} do {
         break;
     };
 
-    if(alive _target) then {
+    if (!isNull _target && alive _target) then {
         _missile setVariable ["guidance", true, true];
         _missile setVariable ["_chosenTarget", _target, true];
         [_missile, _target, _parameters, _boost, _skipSpeed] spawn A3U_fnc_guidanceLaws;
-        //systemChat format ["GUIDING:%1 TO:%2", _missile, _target];
+    } else {
+        _mine = createMine ["APERSMine", getPosATL _missile, [], 0];
+        _mine setDamage 1;
+        deleteVehicle _missile;
+        break;
     };
     
     private _time = time;
     //Wait until tgt is dead or timeout
-    //waitUntil{(!alive _target) or ((time - _time) > _timeout)}; BROKEN FOR SOME REASON, becomes nil idk why
     while{alive _target and alive _missile} do {
         if(time - _time > _timeout) then {
             _guidanceEnabled = false;
